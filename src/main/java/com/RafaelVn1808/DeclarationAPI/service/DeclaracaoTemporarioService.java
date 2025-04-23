@@ -10,12 +10,12 @@ import java.time.Period;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class DeclaracaoTemporario extends Declaracao {
+public class DeclaracaoTemporarioService extends DeclaracaoService {
 
     private String cargo;
 
-    public DeclaracaoTemporario(String nome, Integer matricula, Integer vinculo, LocalDate datainicio, LocalDate datafim, String cargo) {
-        super(nome, matricula, vinculo, datainicio, datafim);
+    public DeclaracaoTemporarioService(String nome, Integer matricula, Integer vinculo, LocalDate dataInicio, LocalDate dataFim, String cargo) {
+        super(nome, matricula, vinculo, dataInicio, dataFim);
         this.cargo = cargo;
     }
 

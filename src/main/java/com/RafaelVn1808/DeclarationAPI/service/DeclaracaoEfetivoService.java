@@ -1,6 +1,5 @@
 package com.RafaelVn1808.DeclarationAPI.service;
 
-
 import lombok.*;
 import java.time.LocalDate;
 import java.time.Period;
@@ -8,7 +7,7 @@ import java.time.Period;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class DeclaracaoEfetivo extends Declaracao {
+public class DeclaracaoEfetivoService extends DeclaracaoService {
 
     private Integer numberPort;
     private LocalDate dataPtDt;
@@ -17,9 +16,9 @@ public class DeclaracaoEfetivo extends Declaracao {
     private String cargo;
     private LocalDate posse;
 
-    public DeclaracaoEfetivo(String nome, Integer matricula, Integer vinculo, LocalDate datainicio, LocalDate datafim,
-                             Integer numberPort, LocalDate dataPtDt, LocalDate dataDoe, Integer numberDoe, String cargo,
-                             LocalDate posse) {
+    public DeclaracaoEfetivoService(String nome, Integer matricula, Integer vinculo, LocalDate datainicio, LocalDate datafim,
+                                    Integer numberPort, LocalDate dataPtDt, LocalDate dataDoe, Integer numberDoe, String cargo,
+                                    LocalDate posse) {
         super(nome, matricula, vinculo, datainicio, datafim);
         this.numberPort = numberPort;
         this.dataPtDt = dataPtDt;
@@ -29,8 +28,8 @@ public class DeclaracaoEfetivo extends Declaracao {
         this.posse = posse;
     }
 
-    public DeclaracaoEfetivo(String nome, Integer matricula, Integer vinculo, LocalDate datainicio, LocalDate datafim,
-                             LocalDate dataPtDt, LocalDate dataDoe, Integer numberDoe, String cargo, LocalDate posse) {
+    public DeclaracaoEfetivoService(String nome, Integer matricula, Integer vinculo, LocalDate datainicio, LocalDate datafim,
+                                    LocalDate dataPtDt, LocalDate dataDoe, Integer numberDoe, String cargo, LocalDate posse) {
         super(nome, matricula, vinculo, datainicio, datafim);
         this.dataPtDt = dataPtDt;
         this.dataDoe = dataDoe;
@@ -38,7 +37,6 @@ public class DeclaracaoEfetivo extends Declaracao {
         this.cargo = cargo;
         this.posse = posse;
     }
-
 
     public String dataPtDtFormatada() {
         return dataPtDt != null ? dataPtDt.format(FORMATTER) : "Data não informada";
@@ -84,7 +82,34 @@ public class DeclaracaoEfetivo extends Declaracao {
             declaracao.append(" (Datas de início e/ou fim não informadas, não foi possível calcular o tempo de serviço).");
         }
 
-        return declaracao.toString();
+        return wrapText(declaracao.toString(), 90, 60);
     }
 
+    private String wrapText(String input, int maxLineLength, int maxLinesPerPage) {
+        StringBuilder result = new StringBuilder();
+        String[] words = input.split(" ");
+        int lineLength = 0;
+        int lineCount = 0;
+
+        for (String word : words) {
+            if (lineLength + word.length() > maxLineLength) {
+                result.append("\n");
+                lineLength = 0;
+                lineCount++;
+            } else if (lineLength > 0) {
+                result.append(" ");
+                lineLength += 1;
+            }
+
+            result.append(word);
+            lineLength += word.length();
+
+            if (lineCount >= maxLinesPerPage) {
+                result.append("\f"); // Quebra de página
+                lineCount = 0;
+            }
+        }
+
+        return result.toString();
+    }
 }
