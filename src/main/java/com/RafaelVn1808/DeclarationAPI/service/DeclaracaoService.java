@@ -13,7 +13,7 @@ import java.time.temporal.ChronoUnit;
 
 
 @NoArgsConstructor
-public class Declaracao {
+public class DeclaracaoService {
 
 
     public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -31,7 +31,7 @@ public class Declaracao {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
     private LocalDate dataFim;
 
-    public Declaracao(String nome, Integer matricula, Integer vinculo, LocalDate datainicio, LocalDate datafim) {
+    public DeclaracaoService(String nome, Integer matricula, Integer vinculo, LocalDate datainicio, LocalDate datafim) {
         this.nome = nome;
         this.matricula = matricula;
         this.vinculo = vinculo;

@@ -2,6 +2,7 @@ package com.RafaelVn1808.DeclarationAPI.service;
 
 import com.RafaelVn1808.DeclarationAPI.DTOs.DeclaracaoEfetivoPtDTO;
 import com.RafaelVn1808.DeclarationAPI.DTOs.DeclaracaoEstagioDTO;
+import com.RafaelVn1808.DeclarationAPI.DTOs.DeclaracaoTemporarioDTO;
 import com.itextpdf.kernel.pdf.PdfDocument;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.layout.Document;
@@ -14,7 +15,7 @@ import java.io.ByteArrayOutputStream;
 public class GerarPDFService {
 
     public byte[] gerarDeclaracaoEstagio(DeclaracaoEstagioDTO dto) {
-        DeclaracaoEstagio declaracao = new DeclaracaoEstagio(
+        DeclaracaoEstagioService declaracao = new DeclaracaoEstagioService(
                 dto.nome, dto.matricula, dto.vinculo, dto.dataInicio, dto.dataFim, dto.curso
         );
 
@@ -30,7 +31,7 @@ public class GerarPDFService {
     }
 
     public byte[] gerarDeclaracaoEfetivo(DeclaracaoEfetivoPtDTO dto) {
-        DeclaracaoEfetivo declaracao = new DeclaracaoEfetivo(dto.nome, dto.matricula, dto.vinculo,
+        DeclaracaoEfetivoService declaracao = new DeclaracaoEfetivoService(dto.nome, dto.matricula, dto.vinculo,
                 dto.dataInicio, dto.dataFim, dto.numberPort, dto.dataPtDt, dto.dataDoe, dto.numberDoe,
                 dto.cargo, dto.posse);
 
@@ -45,10 +46,9 @@ public class GerarPDFService {
         return baos.toByteArray();
     }
 
-    public byte[] gerarDeclaracaoEfetivoDt(DeclaracaoEfetivoPtDTO dto) {
-        DeclaracaoEfetivo declaracao = new DeclaracaoEfetivo(dto.nome, dto.matricula, dto.vinculo,
-                dto.dataInicio, dto.dataFim, dto.numberPort, dto.dataPtDt, dto.dataDoe, dto.numberDoe,
-                dto.cargo, dto.posse);
+    public byte[] gerarDeclaracaoTemporario(DeclaracaoTemporarioDTO dto) {
+        DeclaracaoTemporarioService declaracao = new DeclaracaoTemporarioService(dto.nome, dto.matricula, dto.vinculo,
+                dto.dataInicio, dto.dataFim, dto.cargo);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         PdfWriter writer = new PdfWriter(baos);
@@ -60,6 +60,8 @@ public class GerarPDFService {
         document.close();
         return baos.toByteArray();
     }
+
+
 }
 
 

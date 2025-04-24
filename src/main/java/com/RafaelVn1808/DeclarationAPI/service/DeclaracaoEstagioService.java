@@ -9,11 +9,11 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class DeclaracaoEstagio extends Declaracao {
+public class DeclaracaoEstagioService extends DeclaracaoService {
 
     private String curso;
 
-    public DeclaracaoEstagio(String nome, Integer matricula, Integer vinculo, LocalDate datainicio, LocalDate datafim, String curso) {
+    public DeclaracaoEstagioService(String nome, Integer matricula, Integer vinculo, LocalDate datainicio, LocalDate datafim, String curso) {
         super(nome, matricula, vinculo, datainicio, datafim);
         this.curso = curso;
     }
