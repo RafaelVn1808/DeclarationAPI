@@ -1,15 +1,9 @@
-import React from 'react';
-import FormEstagiario from './components/FormEstagiario';
+import { useState } from 'react'
+import css from  './App.module.css';
+import { IoArrowBack } from "react-icons/io5";
+import axios from 'axios';
 
 function App() {
-<<<<<<< Updated upstream
-  return (
-    <div className="App">
-      <h1>Declaração de Estágio</h1>
-      <FormEstagiario />
-    </div>
-  );
-=======
   const [clicked, setClicked] = useState(false)
   const [formSelected, setFormSelected] = useState("")
   const [form, setForm] = useState({
@@ -30,7 +24,6 @@ function App() {
   function changeClicked(e){
     setClicked(!clicked)
     setFormSelected(e.target.id)
-    console.log(formSelected)
   }
 
   async function enviarForm(e){
@@ -118,7 +111,7 @@ function App() {
       </main>
     </>
   )
->>>>>>> Stashed changes
 }
 
-export default App;
+export default App
+
