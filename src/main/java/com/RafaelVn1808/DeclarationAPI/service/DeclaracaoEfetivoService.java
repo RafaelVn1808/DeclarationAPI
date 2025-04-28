@@ -82,34 +82,6 @@ public class DeclaracaoEfetivoService extends DeclaracaoService {
             declaracao.append(" (Datas de início e/ou fim não informadas, não foi possível calcular o tempo de serviço).");
         }
 
-        return wrapText(declaracao.toString(), 90, 60);
-    }
-
-    private String wrapText(String input, int maxLineLength, int maxLinesPerPage) {
-        StringBuilder result = new StringBuilder();
-        String[] words = input.split(" ");
-        int lineLength = 0;
-        int lineCount = 0;
-
-        for (String word : words) {
-            if (lineLength + word.length() > maxLineLength) {
-                result.append("\n");
-                lineLength = 0;
-                lineCount++;
-            } else if (lineLength > 0) {
-                result.append(" ");
-                lineLength += 1;
-            }
-
-            result.append(word);
-            lineLength += word.length();
-
-            if (lineCount >= maxLinesPerPage) {
-                result.append("\f"); // Quebra de página
-                lineCount = 0;
-            }
-        }
-
-        return result.toString();
+        return formatarParaA4(declaracao.toString());
     }
 }
