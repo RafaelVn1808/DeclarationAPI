@@ -51,30 +51,55 @@ public class GerarPDFService {
         }
     }
 
-    /*public byte[] gerarDeclaracaoEfetivo(DeclaracaoEfetivoPtDTO dto) {
-        try {
+    public byte[] gerarDeclaracaoEfetivo(DeclaracaoEfetivoPtDTO dto) {
+        // Validação de campos obrigatórios
+        if (dto.getNome() == null || dto.getMatricula() == null ||
+                dto.getDataInicio() == null || dto.getDataFim() == null) {
+            logger.error("Campos obrigatórios não fornecidos: nome={}, matricula={}, dataInicio={}, dataFim={}",
+                    dto.getNome(), dto.getMatricula(), dto.getDataInicio(), dto.getDataFim());
+            throw new IllegalArgumentException("Campos obrigatórios não fornecidos");
+        }
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             PdfWriter writer = new PdfWriter(baos);
+             PdfDocument pdfDoc = new PdfDocument(writer);
+             Document document = new Document(pdfDoc)) {
+
+            pdfDoc.setTagged();
+            writer.setCloseStream(false);
+
+            // Criação da declaração (lógica simplificada)
             DeclaracaoEfetivoService declaracao = new DeclaracaoEfetivoService(
                     dto.getNome(),
                     dto.getMatricula(),
                     dto.getVinculo(),
                     dto.getDataInicio(),
                     dto.getDataFim(),
-                    dto.getNumberPort(),
-                    dto.getDataPtDt(),
-                    dto.getDataDoe(),
-                    dto.getNumberDoe(),
-                    dto.getCargo(),
-                    dto.getPosse()
+                    dto.getNumberPort(),  // pode ser null
+                    dto.getDataPtDt(),    // pode ser null
+                    dto.getDataDoe(),     // pode ser null
+                    dto.getNumberDoe(),   // pode ser null
+                    dto.getCargo() != null ? dto.getCargo() : "Não informado",
+                    dto.getPosse()        // pode ser null
             );
 
-            return gerarPdf(declaracao.gerarElementosPdf());
+            // Adiciona todos os elementos diretamente (sem chamar gerarPdf separadamente)
+            for (IBlockElement elemento : declaracao.gerarParagrafosPdf()) {
+                document.add(elemento);
+            }
+
+            document.close();
+
+            return baos.toByteArray();
+
         } catch (Exception e) {
-            logger.error("Erro ao gerar PDF de efetivo", e);
-            throw new RuntimeException("Erro ao gerar PDF de efetivo", e);
+            logger.error("Falha na geração do PDF para efetivo", e);
+            throw new RuntimeException("Falha na geração do PDF: " + e.getMessage(), e);
         }
     }
 
-    public byte[] gerarDeclaracaoTemporario(DeclaracaoTemporarioDTO dto) {
+
+    /*public byte[] gerarDeclaracaoTemporario(DeclaracaoTemporarioDTO dto) {
         try {
             DeclaracaoTemporarioService declaracao = new DeclaracaoTemporarioService(
                     dto.getNome(),
