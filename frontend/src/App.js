@@ -10,16 +10,21 @@ function App() {
     nome: "",
     matricula: "",
     vinculo: "",
-    cargo: "",
-    curso: "",
-    numberPort: "",
-    numberPtDt: "",
-    dataDoe: "",
-    numberDoe: "",
-    posse: "",
     dateInicio: "",
-    dateFim: ""
+    dateFim: "",
+    curso: ""
   })
+
+  const formatDate = (dateStr) => {
+    const [year, month, day] = dateStr.split('/');
+    return `${day}-${month}-${year}`;
+  };
+
+  const dadosFormatados = {
+    ...form,
+    dateInicio: formatDate(form.dateInicio),
+    dateFim: formatDate(form.dateFim)
+  };
 
   function changeClicked(e){
     setClicked(!clicked)
@@ -30,7 +35,8 @@ function App() {
     e.preventDefault()
 
     try {
-      const response = await axios.post('http://localhost:8080/api/declaracoes/estagio/pdf', form, {
+      console.log(dadosFormatados)
+      const response = await axios.post('http://localhost:8080/api/declaracoes/estagio/pdf', dadosFormatados, {
         responseType: 'blob',
       });
 
@@ -78,13 +84,13 @@ function App() {
               <input required value={form.cargo} onChange={(e)=>{setForm({...form, cargo: e.target.value})}} type="text"/>
               </> : <></>}
               {formSelected == "efetivo" ? <>
-              <h3>Número de Portabilidade:</h3>
+              <h3>Número de Portaria:</h3>
               <input required value={form.numberPort} onChange={(e)=>{setForm({...form, numberPort: e.target.value})}} type="text"/>
-              <h3>Data PtDt:</h3>
+              <h3>Data Portaria ou Decreto:</h3>
               <input required value={form.numberPtDt} type="date" onChange={(e)=>{setForm({...form, numberPtDt: e.target.value})}}/>
-              <h3>Data doe:</h3>
+              <h3>Data D.O.E:</h3>
               <input required value={form.dataDoe} type="date" onChange={(e)=>{setForm({...form, dataDoe: e.target.value})}}/>
-              <h3>Número Doe</h3>
+              <h3>Número D.O.E:</h3>
               <input required value={form.numberDoe} onChange={(e)=>{setForm({...form, numberDoe: e.target.value})}} type="text"/>
               <h3>Posse:</h3>
               <input required value={form.posse} onChange={(e)=>{setForm({...form, posse: e.target.value})}} type="text"/>
