@@ -1,8 +1,8 @@
 package com.RafaelVn1808.DeclarationAPI.service;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
@@ -13,6 +13,7 @@ public class DeclaracaoService {
     protected static final int DEFAULT_LINES_PER_PAGE = 50;
     public static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     protected static final int LARGURA_PAGINA = 80;
+    protected static final Logger logger = LoggerFactory.getLogger(DeclaracaoService.class);
 
     private String nome;
     private Integer matricula;
@@ -33,7 +34,7 @@ public class DeclaracaoService {
         this.dataFim = datafim;
     }
 
-
+    // Getters e Setters
     public String getNome() {
         return nome;
     }
@@ -74,71 +75,6 @@ public class DeclaracaoService {
         this.dataFim = dataFim;
     }
 
-    protected String formatarParaA4(String texto, int maxCaracteresPorLinha, int maxLinhasPorPagina) {
-        StringBuilder resultado = new StringBuilder();
-        String[] paragrafos = texto.split("\n");
-        int linhasNaPagina = 0;
-
-        for (String paragrafo : paragrafos) {
-            if (paragrafo.contains("DECLARAÇÃO") || paragrafo.contains("Governo") ||
-                    paragrafo.contains("Secretaria") || paragrafo.contains("Polícia") ||
-                    paragrafo.contains("COORDENADORIA")) {
-                int espacos = (maxCaracteresPorLinha - paragrafo.length()) / 2;
-                resultado.append(" ".repeat(Math.max(0, espacos))).append(paragrafo).append("\n");
-                linhasNaPagina++;
-                continue;
-            }
-
-            if (paragrafo.trim().startsWith("Belém,")) {
-                int espacos = maxCaracteresPorLinha - paragrafo.length();
-                resultado.append(" ".repeat(Math.max(0, espacos))).append(paragrafo).append("\n");
-                linhasNaPagina++;
-                continue;
-            }
-
-            String[] palavras = paragrafo.split(" ");
-            StringBuilder linhaAtual = new StringBuilder();
-            int charsNaLinha = 0;
-
-            for (String palavra : palavras) {
-                if (palavra.isEmpty()) continue;
-
-                int espacoNecessario = (charsNaLinha > 0) ? palavra.length() + 1 : palavra.length();
-
-                if (charsNaLinha + espacoNecessario > maxCaracteresPorLinha) {
-                    resultado.append(linhaAtual).append("\n");
-                    if (++linhasNaPagina >= maxLinhasPorPagina) {
-                        resultado.append("\f");
-                        linhasNaPagina = 0;
-                    }
-                    linhaAtual = new StringBuilder(palavra);
-                    charsNaLinha = palavra.length();
-                } else {
-                    if (charsNaLinha > 0) {
-                        linhaAtual.append(" ");
-                        charsNaLinha++;
-                    }
-                    linhaAtual.append(palavra);
-                    charsNaLinha += palavra.length();
-                }
-            }
-
-            if (linhaAtual.length() > 0) {
-                resultado.append(linhaAtual).append("\n");
-                if (++linhasNaPagina >= maxLinhasPorPagina) {
-                    resultado.append("\f");
-                    linhasNaPagina = 0;
-                }
-            }
-        }
-
-        return resultado.toString();
-    }
-
-    protected String formatarParaA4(String texto) {
-        return formatarParaA4(texto, DEFAULT_CHARS_PER_LINE, DEFAULT_LINES_PER_PAGE);
-    }
-
     public String getDatainicioFormatada() {
         return dataInicio != null ? dataInicio.format(FORMATTER) : "Data não informada";
     }
@@ -147,71 +83,98 @@ public class DeclaracaoService {
         return dataFim != null ? dataFim.format(FORMATTER) : "Data não informada";
     }
 
-    public long calcularDiasTotais() {
-        if (dataInicio == null || dataFim == null) {
-            throw new IllegalArgumentException("Data de início e fim não podem ser nulas");
-        }
-        return ChronoUnit.DAYS.between(dataInicio, dataFim) + 1;
-    }
-
-    public Period calcularPeriodo() {
-        if (dataInicio == null || dataFim == null) {
-            throw new IllegalArgumentException("Datas de início e fim não podem ser nulas para o cálculo do período.");
-        }
-        return Period.between(dataInicio, dataFim);
-    }
-
     public String getCurrentDate() {
         return LocalDate.now().format(FORMATTER);
     }
 
+    /**
+     * Calcula o total de dias incluindo o último dia
+     */
+    public long calcularDiasTotais() {
+        validarDatas();
+        return ChronoUnit.DAYS.between(dataInicio, dataFim) + 1;
+    }
+
+    /**
+     * Calcula o período completo (anos, meses, dias)
+     * Inclui o dia final no cálculo
+     */
+    public Period calcularPeriodo() {
+        validarDatas();
+        return Period.between(dataInicio, dataFim.plusDays(1));
+    }
+
+    /**
+     * Formata o período completo por extenso
+     */
+    public String formatarPeriodoCompleto() {
+        Period periodo = calcularPeriodo();
+        int anos = periodo.getYears();
+        int meses = periodo.getMonths();
+        int dias = periodo.getDays();
+
+        if (meses == 0 && dias == 0) {
+            return String.format("%d (%s) %s",
+                    anos, converterNumeroParaExtenso(anos),
+                    plural(anos, "ano completo", "anos completos"));
+        }
+
+        return String.format("%d (%s) %s, %d (%s) %s e %d (%s) %s",
+                anos, converterNumeroParaExtenso(anos), plural(anos, "ano", "anos"),
+                meses, converterNumeroParaExtenso(meses), plural(meses, "mês", "meses"),
+                dias, converterNumeroParaExtenso(dias), plural(dias, "dia", "dias"));
+    }
+
+    /**
+     * Formata dias totais + período completo
+     */
+    protected String formatarTempoServico() {
+        return String.format("%d (%s) %s, equivalentes a %s",
+                calcularDiasTotais(),
+                converterNumeroParaExtenso(calcularDiasTotais()),
+                plural(calcularDiasTotais(), "dia", "dias"),
+                formatarPeriodoCompleto());
+    }
+
+    private void validarDatas() {
+        if (dataInicio == null || dataFim == null) {
+            throw new IllegalStateException("Datas de início e fim devem ser informadas");
+        }
+        if (dataInicio.isAfter(dataFim)) {
+            throw new IllegalStateException("Data de início não pode ser posterior à data final");
+        }
+    }
+
+    /**
+     * Converte números para por extenso (0-9999)
+     */
     public static String converterNumeroParaExtenso(long numero) {
-        if (numero == 0) return "zero";
-        String[] unidades = {"", "um", "dois", "três", "quatro", "cinco",
-                "seis", "sete", "oito", "nove"};
+        if (numero < 0 || numero > 9999) {
+            return String.valueOf(numero);
+        }
+
+        String[] unidades = {"zero", "um", "dois", "três", "quatro", "cinco",
+                "seis", "sete", "oito", "nove", "dez", "onze",
+                "doze", "treze", "quatorze", "quinze", "dezesseis",
+                "dezessete", "dezoito", "dezenove"};
         String[] dezenas = {"", "", "vinte", "trinta", "quarenta", "cinquenta",
                 "sessenta", "setenta", "oitenta", "noventa"};
-        String[] especiais = {"dez", "onze", "doze", "treze", "quatorze", "quinze",
-                "dezesseis", "dezessete", "dezoito", "dezenove"};
-        String[] centenas = {"", "cento", "duzentos", "trezentos", "quatrocentos", "quinhentos",
-                "seiscentos", "setecentos", "oitocentos", "novecentos"};
+        String[] centenas = {"", "cento", "duzentos", "trezentos", "quatrocentos",
+                "quinhentos", "seiscentos", "setecentos", "oitocentos",
+                "novecentos"};
 
-        StringBuilder resultado = new StringBuilder();
-
-        if (numero >= 1000) {
-            long milhar = numero / 1000;
-            resultado.append(converterNumeroParaExtenso(milhar)).append(" mil");
-            numero %= 1000;
-            if (numero > 0) resultado.append(" e ");
+        if (numero < 20) return unidades[(int) numero];
+        if (numero < 100) {
+            return dezenas[(int) numero / 10] +
+                    ((numero % 10 != 0) ? " e " + unidades[(int) numero % 10] : "");
         }
-
-        if (numero == 100) {
-            resultado.append("cem");
-            return resultado.toString();
+        if (numero == 100) return "cem";
+        if (numero < 1000) {
+            return centenas[(int) numero / 100] +
+                    ((numero % 100 != 0) ? " e " + converterNumeroParaExtenso(numero % 100) : "");
         }
-
-        if (numero >= 100) {
-            long centena = numero / 100;
-            resultado.append(centenas[(int) centena]);
-            numero %= 100;
-            if (numero > 0) resultado.append(" e ");
-        }
-
-        if (numero >= 20) {
-            long dezena = numero / 10;
-            resultado.append(dezenas[(int) dezena]);
-            numero %= 10;
-            if (numero > 0) resultado.append(" e ");
-        } else if (numero >= 10) {
-            resultado.append(especiais[(int) (numero - 10)]);
-            numero = 0;
-        }
-
-        if (numero > 0) {
-            resultado.append(unidades[(int) numero]);
-        }
-
-        return resultado.toString().trim();
+        return converterNumeroParaExtenso(numero / 1000) + " mil" +
+                ((numero % 1000 != 0) ? " e " + converterNumeroParaExtenso(numero % 1000) : "");
     }
 
     protected String plural(long valor, String singular, String plural) {
@@ -219,20 +182,11 @@ public class DeclaracaoService {
     }
 
     protected String centralizarTexto(String texto) {
-        int larguraTotal = LARGURA_PAGINA;
-        StringBuilder resultado = new StringBuilder();
-        String[] linhas = texto.split("\n");
-        for (String linha : linhas) {
-            int espacos = (larguraTotal - linha.length()) / 2;
-            resultado.append(" ".repeat(Math.max(0, espacos))).append(linha).append("\n");
-        }
-        return resultado.toString();
+        int espacos = (LARGURA_PAGINA - texto.length()) / 2;
+        return " ".repeat(Math.max(0, espacos)) + texto;
     }
 
     protected String alinharDireita(String texto) {
-        int larguraTotal = LARGURA_PAGINA;
-        return " ".repeat(Math.max(0, larguraTotal - texto.length())) + texto + "\n";
+        return " ".repeat(Math.max(0, LARGURA_PAGINA - texto.length())) + texto;
     }
-
-
 }

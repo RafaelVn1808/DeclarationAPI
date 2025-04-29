@@ -99,23 +99,48 @@ public class GerarPDFService {
     }
 
 
-    /*public byte[] gerarDeclaracaoTemporario(DeclaracaoTemporarioDTO dto) {
-        try {
+    public byte[] gerarDeclaracaoTemporario(DeclaracaoTemporarioDTO dto) {
+        // Validação de campos obrigatórios
+        if (dto.getNome() == null || dto.getMatricula() == null ||
+                dto.getDataInicio() == null || dto.getDataFim() == null ||
+                dto.getCargo() == null) {
+            logger.error("Campos obrigatórios não fornecidos: nome={}, matricula={}, dataInicio={}, dataFim={}, cargo={}",
+                    dto.getNome(), dto.getMatricula(), dto.getDataInicio(), dto.getDataFim(), dto.getCargo());
+            throw new IllegalArgumentException("Todos os campos obrigatórios devem ser fornecidos");
+        }
+
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
+             PdfWriter writer = new PdfWriter(baos);
+             PdfDocument pdfDoc = new PdfDocument(writer);
+             Document document = new Document(pdfDoc)) {
+
+            // Configurações essenciais do PDF
+            pdfDoc.setTagged();
+            writer.setCloseStream(false);
+
+            // Criação da declaração
             DeclaracaoTemporarioService declaracao = new DeclaracaoTemporarioService(
                     dto.getNome(),
                     dto.getMatricula(),
-                    dto.getVinculo(),
+                    dto.getVinculo() != null ? dto.getVinculo() : 0, // valor default
                     dto.getDataInicio(),
                     dto.getDataFim(),
                     dto.getCargo()
             );
 
-            return gerarPdf(declaracao.gerarElementosPdf());
+            // Adiciona todos os elementos ao documento
+            for (IBlockElement elemento : declaracao.gerarParagrafosPdf()) {
+                document.add(elemento);
+            }
+            document.close();
+
+            return baos.toByteArray();
+
         } catch (Exception e) {
-            logger.error("Erro ao gerar PDF de temporário", e);
-            throw new RuntimeException("Erro ao gerar PDF de temporário", e);
+            logger.error("Falha na geração do PDF temporário", e);
+            throw new RuntimeException("Falha ao gerar PDF temporário: " + e.getMessage(), e);
         }
-    }*/
+    }
 
     private byte[] gerarPdf(List<IBlockElement> elementos) {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream();
