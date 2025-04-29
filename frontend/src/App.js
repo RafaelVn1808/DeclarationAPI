@@ -10,20 +10,20 @@ function App() {
     nome: "",
     matricula: "",
     vinculo: "",
-    dateInicio: "",
-    dateFim: "",
+    dataInicio: "",
+    dataFim: "",
     curso: ""
   })
 
   const formatDate = (dateStr) => {
-    const [year, month, day] = dateStr.split('/');
-    return `${day}-${month}-${year}`;
+    const [year, month, day] = dateStr.split('-');
+    return `${day}/${month}/${year}`;
   };
 
   const dadosFormatados = {
     ...form,
-    dateInicio: formatDate(form.dateInicio),
-    dateFim: formatDate(form.dateFim)
+    dataInicio: formatDate(form.dataInicio),
+    dataFim: formatDate(form.dataFim)
   };
 
   function changeClicked(e){
@@ -72,9 +72,9 @@ function App() {
               <h3>Vinculo:</h3>
               <input required value={form.vinculo} onChange={(e)=>{setForm({...form, vinculo: e.target.value})}} type="text"/>
               <h3>Data de inicio:</h3>
-              <input required value={form.dateInicio} type="date" onChange={(e)=>{setForm({...form, dateInicio: e.target.value})}}/>
+              <input required value={form.dataInicio} type="date" onChange={(e)=>{setForm({...form, dataInicio: e.target.value})}}/>
               <h3>Data de fim:</h3>
-              <input required value={form.dateFim} type="date" onChange={(e)=>{setForm({...form, dateFim: e.target.value})}}/>
+              <input required value={form.dataFim} type="date" onChange={(e)=>{setForm({...form, dataFim: e.target.value})}}/>
               {formSelected == "estagio" ? <>
               <h3>Curso:</h3>
               <input required value={form.curso} onChange={(e)=>{setForm({...form, curso: e.target.value})}} type="text"/>
