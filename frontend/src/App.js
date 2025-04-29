@@ -2,6 +2,8 @@ import { useState } from 'react'
 import css from  './App.module.css';
 import { IoArrowBack } from "react-icons/io5";
 import axios from 'axios';
+import { JanelaInfo } from './components/JanelaInfo/JanelaInfo';
+import { mudarTextoJanela } from './components/JanelaInfo/JanelaInfo';
 
 function App() {
   const [clicked, setClicked] = useState(false)
@@ -12,8 +14,19 @@ function App() {
     vinculo: "",
     dataInicio: "",
     dataFim: "",
-    curso: ""
+    curso: "",
+    numberDoe: "",
+    dataDoe: "",
+    posse: "",
+    numberPort: "",
+    numberPtDt: "",
+    cargo: ""
   })
+
+  function stringParaData(str) {
+    const [dia, mes, ano] = str.split("/").map(Number);
+    return new Date(ano, mes - 1, dia);
+  }
 
   const formatDate = (dateStr) => {
     const [year, month, day] = dateStr.split('-');
@@ -23,7 +36,10 @@ function App() {
   const dadosFormatados = {
     ...form,
     dataInicio: formatDate(form.dataInicio),
-    dataFim: formatDate(form.dataFim)
+    dataFim: formatDate(form.dataFim),
+    dataDoe: formatDate(form.dataDoe),
+    posse: formatDate(form.posse),
+    numberPtDt: formatDate(form.numberPtDt)
   };
 
   function changeClicked(e){
@@ -33,28 +49,59 @@ function App() {
 
   async function enviarForm(e){
     e.preventDefault()
-
-    try {
-      console.log(dadosFormatados)
-      const response = await axios.post('http://localhost:8080/api/declaracoes/estagio/pdf', dadosFormatados, {
-        responseType: 'blob',
-      });
-
-      const blob = new Blob([response.data], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
-
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'declaracao-estagiario.pdf';
-      a.click();
-    } catch (error) {
-      console.error('Erro ao enviar dados:', error);
-      alert('Erro ao gerar PDF. Verifique a API.');
+    let dadosVerificados = verificarDados()
+    if(dadosVerificados == true){
+      try {
+        const response = await axios.post(`http://localhost:8080/api/declaracoes/${formSelected}/pdf`, dadosFormatados, {
+          responseType: 'blob',
+        });
+  
+        const blob = new Blob([response.data], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+  
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `declaracao-${formSelected}.pdf`;
+        a.click();
+        setForm({
+          nome: "",
+          matricula: "",
+          vinculo: "",
+          dataInicio: "",
+          dataFim: "",
+          curso: "",
+          numberDoe: "",
+          dataDoe: "",
+          posse: "",
+          numberPort: "",
+          numberPtDt: "",
+          cargo: ""
+        })
+        mudarTextoJanela("Sucesso", "formulario enviado com sucesso", true)
+      } catch (error) {
+        alert('Erro ao gerar PDF. Verifique a API.');
+      }
     }
+
+    function verificarDados(){
+      const dataInicio = stringParaData(dadosFormatados.dataInicio);
+      const dataFim = stringParaData(dadosFormatados.dataFim);
+      if(dataInicio > dataFim){
+        return mudarTextoJanela("Erro", "data de inicio maior do que a data final!!", false)
+      }
+      if(dadosFormatados.nome.split(" ").length < 2){
+        return mudarTextoJanela("Erro", "digite o seu nome completo!!", false)
+      }
+      return true
+    }
+    
   }
 
   return (
     <>
+
+      <JanelaInfo></JanelaInfo>
+
       <main>
         
         <div className={css.center}>
@@ -93,7 +140,7 @@ function App() {
               <h3>Número D.O.E:</h3>
               <input required value={form.numberDoe} onChange={(e)=>{setForm({...form, numberDoe: e.target.value})}} type="text"/>
               <h3>Posse:</h3>
-              <input required value={form.posse} onChange={(e)=>{setForm({...form, posse: e.target.value})}} type="text"/>
+              <input required value={form.posse} onChange={(e)=>{setForm({...form, posse: e.target.value})}} type="date"/>
               </> : <></>}
               <input type="submit" value="Enviar" />
             </form>
