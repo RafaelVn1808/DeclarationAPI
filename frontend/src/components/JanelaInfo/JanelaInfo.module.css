@@ -1,0 +1,64 @@
+.janela__info{
+    width: 90%;
+    max-width: 300px;
+    min-height: 70px;
+    border-radius: 10px;
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    background-color: rgb(218, 214, 214);
+    border-left: 5px solid green;
+    color: green;
+    padding: 10px;
+    opacity: 0;
+    z-index: 1000;
+    display: none;
+}
+
+.button__janela__info{
+    position: absolute;
+    color: black;
+    right: 5px;
+    top: 5px;
+    font-size: 20px;
+}
+
+.button__janela__info > svg{
+    cursor: pointer;
+}
+
+#janelaInfo{
+    background-color: black !important;
+}
+
+.janela__info > div{
+    display: flex;
+}
+
+.janela__info > div > h2{
+    font-size: 18px;
+    line-height: 28px;
+}
+
+.janela__info > div > span{
+    font-size: 16px;
+    margin: 4px 8px;
+    background-color: green;
+    width: 20px;
+    height: 20px;
+    line-height: 25px;
+    border-radius: 10px;
+    text-align: center;
+    color: black;
+
+}
+
+.janela__info > div > span > svg{
+    text-align: center;
+}
+
+.texto__janelaInfo{
+    margin: 0 2%;
+    margin-top: 5px;
+    font-size: 16px;
+}
