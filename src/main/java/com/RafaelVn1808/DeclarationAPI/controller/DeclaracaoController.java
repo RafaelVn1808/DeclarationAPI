@@ -10,6 +10,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RestController
@@ -19,44 +22,98 @@ public class DeclaracaoController {
     @Autowired
     private GerarPDFService gerarPDFService;
 
+    @Autowired
+    public DeclaracaoController(GerarPDFService gerarPDFService) {
+        this.gerarPDFService = gerarPDFService;
+    }
 
     @PostMapping("/estagio/pdf")
     public ResponseEntity<byte[]> gerarPdfDeclaracaoEstagio(@RequestBody DeclaracaoEstagioDTO dto) {
-        byte[] pdfBytes = gerarPDFService.gerarDeclaracaoEstagio(dto);
+        try {
+            byte[] pdfBytes = gerarPDFService.gerarDeclaracaoEstagio(dto);
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.setContentDisposition(ContentDisposition.builder("attachment")
-                .filename("declaracao-estagio.pdf")
-                .build());
+            // Verificação crítica - o PDF foi gerado?
+            if (pdfBytes == null || pdfBytes.length == 0) {
+                throw new RuntimeException("O PDF gerado está vazio");
+            }
 
-        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+            // DEBUG: Salva localmente para verificação
+            Files.write(Paths.get("debug.pdf"), pdfBytes);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDisposition(
+                    ContentDisposition.builder("attachment")
+                            .filename("declaracao_estagio.pdf")
+                            .build());
+            headers.setContentLength(pdfBytes.length);
+
+            return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body(("Erro ao gerar PDF: " + e.getMessage()).getBytes());
+        }
     }
 
+
     @PostMapping("/efetivo/pdf")
-    public ResponseEntity<byte[]> gerarPdfDeclaracaoEfetivo(@RequestBody DeclaracaoEfetivoPtDTO dto) {
-        byte[] pdfBytes = gerarPDFService.gerarDeclaracaoEfetivo(dto);
+    public ResponseEntity<?> gerarPdfDeclaracaoEfetivo(@RequestBody DeclaracaoEfetivoPtDTO dto) {
+        try {
+            // Validação adicional de datas
+            if (dto.getDataInicio().isAfter(dto.getDataFim())) {
+                throw new IllegalArgumentException("Data de início deve ser anterior à data final");
+            }
 
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.setContentDisposition(ContentDisposition.builder("attachment")
-                .filename("declaracao-efetivo.pdf")
-                .build());
+            byte[] pdfBytes = gerarPDFService.gerarDeclaracaoEfetivo(dto);
 
-        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+            if (pdfBytes == null) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Falha crítica ao gerar PDF");
+            }
+
+
+            return ResponseEntity.ok()
+                    .header("Content-Type", "application/pdf")
+                    .header("Content-Disposition", "attachment; filename=declaracao.pdf")
+                    .body(pdfBytes);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body("Erro interno ao gerar PDF");
+        }
     }
 
     @PostMapping("/temporario/pdf")
-    public ResponseEntity<byte[]> gerarPdfDeclaracaoTemporario(@RequestBody DeclaracaoTemporarioDTO dto){
-        byte[] pdfBytes = gerarPDFService.gerarDeclaracaoTemporario(dto);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_PDF);
-        headers.setContentDisposition(ContentDisposition.builder("attachment")
-                .filename("declaracao-temporário.pdf")
-                .build());
+    public ResponseEntity<?> gerarPdfDeclaracaoTemporario(@RequestBody DeclaracaoTemporarioDTO dto) {
+        try {
+            // Validação adicional de datas
+            if (dto.getDataInicio().isAfter(dto.getDataFim())) {
+                throw new IllegalArgumentException("Data de início deve ser anterior à data final");
+            }
 
-        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+            byte[] pdfBytes = gerarPDFService.gerarDeclaracaoTemporario(dto);
+
+            if (pdfBytes == null) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                        .body("Falha crítica ao gerar PDF");
+            }
+
+            return ResponseEntity.ok()
+                    .header("Content-Type", "application/pdf")
+                    .header("Content-Disposition", "attachment; filename=declaracao_temporario.pdf")
+                    .body(pdfBytes);
+
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body("Erro interno ao gerar PDF");
+        }
     }
+
+
 }
 
 
